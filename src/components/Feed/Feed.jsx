@@ -4,11 +4,21 @@ import VideoCard from "../VideoCard/VideoCard";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 const Feed = () => {
-  const { videos } = useApp();
+  const { videos, activeFeedVideoId, setActiveFeedVideoId } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef(null);
   const startYRef = useRef(null);
   const isScrollingRef = useRef(false);
+
+  useEffect(() => {
+    if (activeFeedVideoId) {
+      const idx = videos.findIndex((v) => v.id === activeFeedVideoId);
+      if (idx !== -1) {
+        setCurrentIndex(idx);
+      }
+      setActiveFeedVideoId(null);
+    }
+  }, [activeFeedVideoId, videos, setActiveFeedVideoId]);
 
   const scrollTo = useCallback((index) => {
     if (index < 0 || index >= videos.length) return;

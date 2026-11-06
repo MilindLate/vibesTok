@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Search, Hash, TrendingUp, Compass, Play } from "lucide-react";
+import { useApp } from "../context/AppContext";
 import { trendingHashtags, mockVideos, mockUsers, formatNumber } from "../data/mockData";
 
 const DiscoverPage = () => {
+  const navigate = useNavigate();
+  const { setActiveFeedVideoId } = useApp();
   const [searchParams] = useSearchParams();
   const initialTag = searchParams.get("tag") || "";
   const [query, setQuery] = useState(initialTag);
@@ -100,7 +103,14 @@ const DiscoverPage = () => {
           {filteredVideos.map((video) => {
             const author = mockUsers.find((u) => u.id === video.userId);
             return (
-              <div key={video.id} className="discover-card">
+              <div
+                key={video.id}
+                className="discover-card"
+                onClick={() => {
+                  setActiveFeedVideoId(video.id);
+                  navigate("/");
+                }}
+              >
                 <div className="discover-thumb-wrapper">
                   <img src={video.thumbnail} alt="video thumbnail" className="discover-thumb" />
                   <span className="discover-duration">{video.duration}s</span>
@@ -110,10 +120,28 @@ const DiscoverPage = () => {
                   </div>
                 </div>
                 <div className="discover-meta">
-                  <img src={author?.avatar} alt={author?.username} className="discover-avatar" />
+                  <img
+                    src={author?.avatar}
+                    alt={author?.username}
+                    className="discover-avatar"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (author) navigate(`/user/${author.id}`);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  />
                   <div className="discover-text-col">
                     <p className="discover-caption">{video.caption}</p>
-                    <span className="discover-author">@{author?.username}</span>
+                    <span
+                      className="discover-author"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (author) navigate(`/user/${author.id}`);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      @{author?.username}
+                    </span>
                   </div>
                 </div>
               </div>

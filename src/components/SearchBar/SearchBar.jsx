@@ -1,8 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, X, TrendingUp, Hash } from "lucide-react";
+import { useApp } from "../../context/AppContext";
 import { trendingHashtags, mockUsers, mockVideos } from "../../data/mockData";
 
 const SearchBar = ({ onClose }) => {
+  const navigate = useNavigate();
+  const { setActiveFeedVideoId } = useApp();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
 
@@ -20,6 +24,17 @@ const SearchBar = ({ onClose }) => {
       (v) => v.caption.toLowerCase().includes(lq) || v.tags?.some((t) => t.toLowerCase().includes(lq))
     );
     setResults({ users, videos });
+  };
+
+  const handleUserClick = (userId) => {
+    onClose();
+    navigate(`/user/${userId}`);
+  };
+
+  const handleVideoClick = (videoId) => {
+    onClose();
+    setActiveFeedVideoId(videoId);
+    navigate("/");
   };
 
   return (
@@ -65,7 +80,11 @@ const SearchBar = ({ onClose }) => {
               <>
                 <div className="search-section-title">Creators</div>
                 {results.users.map((u) => (
-                  <div key={u.id} className="search-user-item">
+                  <div
+                    key={u.id}
+                    className="search-user-item"
+                    onClick={() => handleUserClick(u.id)}
+                  >
                     <img src={u.avatar} alt={u.username} className="search-avatar" />
                     <div>
                       <div className="search-username">{u.displayName}</div>
@@ -79,7 +98,11 @@ const SearchBar = ({ onClose }) => {
               <>
                 <div className="search-section-title">Videos</div>
                 {results.videos.map((v) => (
-                  <div key={v.id} className="search-video-item">
+                  <div
+                    key={v.id}
+                    className="search-video-item"
+                    onClick={() => handleVideoClick(v.id)}
+                  >
                     <img src={v.thumbnail} alt="thumb" className="search-thumb" />
                     <p>{v.caption.slice(0, 70)}...</p>
                   </div>

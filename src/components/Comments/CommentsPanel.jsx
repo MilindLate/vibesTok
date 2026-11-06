@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { X, Send, Heart } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { mockUsers, formatNumber } from "../../data/mockData";
 
 const CommentsPanel = ({ videoId, onClose }) => {
+  const navigate = useNavigate();
   const { comments, currentUser, addComment } = useApp();
   const [text, setText] = useState("");
   const videoComments = comments[videoId] || [];
@@ -13,6 +15,11 @@ const CommentsPanel = ({ videoId, onClose }) => {
     if (!text.trim()) return;
     addComment(videoId, text.trim());
     setText("");
+  };
+
+  const handleUserClick = (userId) => {
+    onClose();
+    navigate(`/user/${userId}`);
   };
 
   return (
@@ -33,9 +40,21 @@ const CommentsPanel = ({ videoId, onClose }) => {
             const user = mockUsers.find((u) => u.id === comment.userId) || currentUser;
             return (
               <div key={comment.id} className="comment-item">
-                <img src={user.avatar} alt={user.username} className="comment-avatar" />
+                <img
+                  src={user.avatar}
+                  alt={user.username}
+                  className="comment-avatar"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleUserClick(user.id)}
+                />
                 <div className="comment-body">
-                  <div className="comment-username">@{user.username}</div>
+                  <div
+                    className="comment-username"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleUserClick(user.id)}
+                  >
+                    @{user.username}
+                  </div>
                   <div className="comment-text">{comment.text}</div>
                   <div className="comment-time">{new Date(comment.createdAt).toLocaleDateString()}</div>
                 </div>

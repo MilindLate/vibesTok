@@ -6,6 +6,9 @@ import DiscoverPage from "./pages/DiscoverPage";
 import ProfilePage from "./pages/ProfilePage";
 import InboxPage from "./pages/InboxPage";
 import UploadPage from "./pages/UploadPage";
+import EditProfilePage from "./pages/EditProfilePage";
+import SettingsPage from "./pages/SettingsPage";
+import UserProfilePage from "./pages/UserProfilePage";
 import BottomNav from "./components/BottomNav/BottomNav";
 import Sidebar from "./components/Sidebar/Sidebar";
 import "./App.css";
@@ -30,6 +33,9 @@ function App() {
           <Route path="/upload" element={<PageWrapper><UploadPage /></PageWrapper>} />
           <Route path="/inbox" element={<PageWrapper><InboxPage /></PageWrapper>} />
           <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
+          <Route path="/edit-profile" element={<PageWrapper><EditProfilePage /></PageWrapper>} />
+          <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
+          <Route path="/user/:userId" element={<PageWrapper><UserProfilePage /></PageWrapper>} />
         </Routes>
       </BrowserRouter>
     </AppProvider>

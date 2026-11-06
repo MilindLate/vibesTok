@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Heart, MessageCircle, Share2, Bookmark, Music2,
   VolumeX, Volume2, Play, MoreHorizontal, UserPlus, UserCheck
@@ -8,6 +9,7 @@ import { mockUsers, formatNumber } from "../../data/mockData";
 import CommentsPanel from "../Comments/CommentsPanel";
 
 const VideoCard = ({ video, isActive }) => {
+  const navigate = useNavigate();
   const { likedVideos, savedVideos, followedUsers, toggleLike, toggleSave, toggleFollow } = useApp();
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
@@ -109,8 +111,8 @@ const VideoCard = ({ video, isActive }) => {
       </div>
 
       <div className="action-bar">
-        <div className="avatar-wrapper">
-          <img src={author?.avatar} alt={author?.username} className="author-avatar" />
+        <div className="avatar-wrapper" onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.userId}`); }}>
+          <img src={author?.avatar} alt={author?.username} className="author-avatar" style={{ cursor: "pointer" }} />
           <button
             className={`follow-bubble ${isFollowed ? "followed" : ""}`}
             onClick={(e) => { e.stopPropagation(); toggleFollow(video.userId); }}
@@ -159,7 +161,13 @@ const VideoCard = ({ video, isActive }) => {
 
       <div className="video-info">
         <div className="author-row">
-          <span className="author-name">@{author?.username}</span>
+          <span
+            className="author-name"
+            style={{ cursor: "pointer" }}
+            onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.userId}`); }}
+          >
+            @{author?.username}
+          </span>
           {author?.verified && <span className="verified-badge">✓</span>}
           {!isFollowed && (
             <button
