@@ -3,8 +3,14 @@ import { useApp } from "../../context/AppContext";
 import VideoCard from "../VideoCard/VideoCard";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
+const PREFETCH_THRESHOLD = 3; 
+const DOT_WINDOW = 5;         
+
 const Feed = () => {
-  const { videos, activeFeedVideoId, setActiveFeedVideoId } = useApp();
+  const {
+    videos, feedVideos, activeFeedVideoId, setActiveFeedVideoId,
+    hasMore, isLoadingMore, loadMore, loadUntil,
+  } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef(null);
   const startYRef = useRef(null);
@@ -14,16 +20,23 @@ const Feed = () => {
     if (activeFeedVideoId) {
       const idx = videos.findIndex((v) => v.id === activeFeedVideoId);
       if (idx !== -1) {
+        loadUntil(idx + 1);
         setCurrentIndex(idx);
       }
       setActiveFeedVideoId(null);
     }
-  }, [activeFeedVideoId, videos, setActiveFeedVideoId]);
+  }, [activeFeedVideoId, videos, setActiveFeedVideoId, loadUntil]);
+
+  useEffect(() => {
+    if (hasMore && !isLoadingMore && currentIndex >= feedVideos.length - PREFETCH_THRESHOLD) {
+      loadMore();
+    }
+  }, [currentIndex, feedVideos.length, hasMore, isLoadingMore, loadMore]);
 
   const scrollTo = useCallback((index) => {
-    if (index < 0 || index >= videos.length) return;
+    if (index < 0 || index >= feedVideos.length) return;
     setCurrentIndex(index);
-  }, [videos.length]);
+  }, [feedVideos.length]);
 
   useEffect(() => {
     const handleWheel = (e) => {
@@ -87,12 +100,18 @@ const Feed = () => {
         className="feed-track"
         style={{ transform: `translateY(-${currentIndex * 100}%)` }}
       >
-        {videos.map((video, i) => (
+        {feedVideos.map((video, i) => (
           <div key={video.id} className="feed-slot">
             <VideoCard video={video} isActive={i === currentIndex} />
           </div>
         ))}
       </div>
+
+      {isLoadingMore && (
+        <div className="feed-loading" role="status" aria-label="Loading more videos">
+          <div className="feed-spinner" />
+        </div>
+      )}
 
       {/* Floating navigation controls for desktop */}
       <div className="feed-nav-controls">
@@ -106,7 +125,7 @@ const Feed = () => {
         </button>
         <button
           className="feed-nav-btn"
-          disabled={currentIndex === videos.length - 1}
+          disabled={currentIndex === feedVideos.length - 1}
           onClick={() => scrollTo(currentIndex + 1)}
           aria-label="Next video"
         >
@@ -114,15 +133,17 @@ const Feed = () => {
         </button>
       </div>
 
-      {/* Progress dots indicator */}
+      {/* Progress dots indicator (windowed) */}
       <div className="feed-dots">
-        {videos.map((_, i) => (
-          <div
-            key={i}
-            className={`feed-dot ${i === currentIndex ? "active" : ""}`}
-            onClick={() => scrollTo(i)}
-          />
-        ))}
+        {feedVideos.map((_, i) =>
+          Math.abs(i - currentIndex) <= DOT_WINDOW ? (
+            <div
+              key={i}
+              className={`feed-dot ${i === currentIndex ? "active" : ""}`}
+              onClick={() => scrollTo(i)}
+            />
+          ) : null
+        )}
       </div>
     </div>
   );

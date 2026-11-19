@@ -1,5 +1,8 @@
-import { createContext, useContext, useState, useCallback } from "react";
 import { mockVideos, mockUsers, mockComments, messages as mockMessages } from "../data/mockData";
+import { createContext, useContext, useState, useCallback, useRef, useMemo } from "react";
+
+const BATCH_SIZE = 10;
+const LOAD_DELAY_MS = 600; 
 
 const AppContext = createContext(null);
 
@@ -14,6 +17,9 @@ export const AppProvider = ({ children }) => {
   const [messages, setMessages]         = useState(mockMessages);
   const [darkMode, setDarkMode]         = useState(true);
   const [activeFeedVideoId, setActiveFeedVideoId] = useState(null);
+  const [visibleCount, setVisibleCount]   = useState(BATCH_SIZE);
+const [isLoadingMore, setIsLoadingMore] = useState(false);
+const loadingRef = useRef(false);
 
   const [settings, setSettings] = useState({
     privateAccount: false,
@@ -97,16 +103,35 @@ export const AppProvider = ({ children }) => {
   const markMessageRead = useCallback((msgId) => {
     setMessages((prev) => prev.map((m) => m.id === msgId ? { ...m, unread: false } : m));
   }, []);
-
-  const addVideo = useCallback((video) => {
-    setVideos((prev) => [video, ...prev]);
-  }, []);
+const addVideo = useCallback((video) => {
+  setVideos((prev) => [video, ...prev]);
+  setVisibleCount((c) => c + 1);
+}, []);
 
   const getUserById = useCallback((id) => {
     if (!id) return null;
     if (id === currentUser.id) return currentUser;
     return users.find((u) => u.id === id) || null;
   }, [currentUser, users]);
+
+const feedVideos = useMemo(() => videos.slice(0, visibleCount), [videos, visibleCount]);
+const hasMore = visibleCount < videos.length;
+
+const loadMore = useCallback(() => {
+  if (loadingRef.current) return; // ignore calls while a batch is loading
+  loadingRef.current = true;
+  setIsLoadingMore(true);
+  setTimeout(() => {
+    setVisibleCount((c) => c + BATCH_SIZE);
+    setIsLoadingMore(false);
+    loadingRef.current = false;
+  }, LOAD_DELAY_MS);
+}, []);
+
+// Used for deep links: make sure the video at `count - 1` is in the feed
+const loadUntil = useCallback((count) => {
+  setVisibleCount((c) => Math.max(c, count));
+}, []);
 
   const unreadNotifCount = notifications.filter((n) => !n.read).length;
   const unreadMsgCount   = messages.filter((m) => m.unread).length;
@@ -130,6 +155,11 @@ export const AppProvider = ({ children }) => {
       settings,
       activeFeedVideoId,
       setActiveFeedVideoId,
+      feedVideos,
+      hasMore,
+      isLoadingMore,
+      loadMore,
+      loadUntil,
       updateCurrentUser,
       updateSettings,
       toggleDarkMode,

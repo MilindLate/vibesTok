@@ -71,7 +71,7 @@ export const mockUsers = [
   },
 ];
 
-export const mockVideos = [
+const baseVideos = [
   {
     id: "v1",
     userId: "u1",
@@ -186,6 +186,33 @@ export const mockVideos = [
   },
 ];
 
+const TOTAL_VIDEOS = 56;
+
+const generatedVideos = Array.from(
+  { length: TOTAL_VIDEOS - baseVideos.length },
+  (_, i) => {
+    const n = baseVideos.length + i + 1; // v8, v9, ...
+    const template = baseVideos[i % baseVideos.length];
+    const variance = 0.5 + ((n * 37) % 100) / 100; // deterministic, 0.5x to 1.5x
+
+    return {
+      ...template,
+      id: `v${n}`,
+      thumbnail: `https://picsum.photos/seed/vibes${n}/400/700`,
+      caption: `${template.caption} (Part ${n})`,
+      likes: Math.round(template.likes * variance),
+      comments: Math.round(template.comments * variance),
+      shares: Math.round(template.shares * variance),
+      saves: Math.round(template.saves * variance),
+      createdAt: new Date(
+        Date.UTC(2026, 10, 3, 12) - (i + 1) * 6 * 60 * 60 * 1000
+      ).toISOString(),
+    };
+  }
+);
+
+export const mockVideos = [...baseVideos, ...generatedVideos];
+
 export const mockComments = {
   v1: [
     { id: "c1", userId: "u2", text: "This is absolutely insane!! 🔥🔥", likes: 12400, createdAt: "2026-10-30T11:00:00Z" },
@@ -242,3 +269,4 @@ export const timeAgo = (iso) => {
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
 };
+console.log(mockVideos.length, new Set(mockVideos.map(v => v.id)).size);
