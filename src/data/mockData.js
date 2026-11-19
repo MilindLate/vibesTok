@@ -269,4 +269,3 @@ export const timeAgo = (iso) => {
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
 };
-console.log(mockVideos.length, new Set(mockVideos.map(v => v.id)).size);
